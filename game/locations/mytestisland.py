@@ -10,7 +10,7 @@ class MyTestIsland(location.Location):
     def __init__(self, x, y, world):
         super().__init__(x, y, world)
         self.name = "My Test Island"
-        self.symbol = "(●__●)"
+        self.symbol = "💀"
         self.visitable = True
         self.starting_location = BeachWithShip(self)
         self.locations = {}
