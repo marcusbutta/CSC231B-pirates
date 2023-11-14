@@ -4,6 +4,29 @@ import game.config as config
 from game.display import announce
 # island specific imports
 import random as r
+import game.items as items
+# enemies
+from game.events import drowned_pirates
+
+# Items:
+class Dagger(items.Item):
+    def __init__(self):
+        super().__init__("dagger", 50)
+        self.damage = (5, 50)
+        self.skill = "swords"
+        self.verb = "stab"
+        self.verb2 = "stabs"
+
+class Key(items.Item):
+    def __init__(self):
+        super().__init__("Key", 200)
+
+class Rusted_Locket(items.Item):
+    def __init__(self):
+        super().__init__("Rusted Locket", 500)
+
+
+# Locations:
 
 class island(location.Location):
     def __init__(self, x, y, world):
@@ -13,6 +36,10 @@ class island(location.Location):
         self.visitable = True
         self.starting_location = NorthBeach(self)
         self.locations = {}
+        self.locations["North Shore"] = NorthBeach(self)
+        self.locations["Dark Forest"] = DarkForest(self)
+        self.locations["Wood Cabin"] = Wood_Cabin(self)
+        self.cultists_triggered = False
     def enter(self, ship):
         announce("You arrive at an island.\nYou find it hard to see.")
 
@@ -37,22 +64,81 @@ class NorthBeach(location.SubLocation):
             announce("You return to the ship.")
             config.the_player.next_loc = config.the_player.ship
             config.the_player.visiting = False
+        if verb == "south":
+            config.the_player.next_loc = self.main_location.locations["Dark Forest"]
         if verb == "investigate":
-            possibilities = ["notice sand", "find locket", "find key", "find skeleton"]
+            possibilities = ["notice sand", "find locket", "find key", "find skeleton", "flint lock"]
             chance = r.choice(possibilities)
             if chance == "notice sand":
                 announce("You notice that there is white sand under the deep fog.")
-            elif chance == "find locket":
-                announce("You find a rusted but none the less fancy locket.")
-            elif chance == "find key":
-                announce("You find a key.\nThere is no sign as to what it is for.")
             elif chance == "find skeleton":
                 announce("You find a skeleton, almost clean.\nYou feel the hair on your arms stick up.")
-
+            # item based:
+            elif chance == "find locket":
+                announce("You find a rusted but none the less fancy locket.")
+                self.take_item("Rusted Locket", Rusted_Locket())
+            elif chance == "find key":
+                announce("You find a key.\nThere is no sign as to what it is for.")
+                self.take_item("Key", Key())
+            elif chance == "flint lock":
+                announce("You find a flint lock pistol")
+                self.take_item("Flint Lock", Dagger())
+    def take_item(self, name, item):
+        while True:
+            userInput = input("Do you wish to take it?: ")
+            if 'yes' in userInput.lower():
+                print(f"You take the {name}.")
+                config.the_player.add_to_inventory([item])
+                break
+            if 'no' in userInput.lower():
+                print(f"You leave the {name}.")
+                break
+            else:
+                print("Invalid option please try again")
+            
 class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
         super().__init__(mainLocation)
         self.name = "The Dark Forest"
+        self.event_chance = 80
+        self.events.append(drowned_pirates.DrownedPirates())
+        # verbs
+        self.verbs["investigate"] = self
+        self.verbs["north"] = self
+        self.verbs["south"] = self
+        self.verbs["west"] = self
+        self.verbs["east"] = self
 
     def enter(self):
         announce("You step foot in a strangely dense forest\nYou sense that you are not alone.")
+
+    def process_verb(self, verb, cmd_list, nouns):
+        if verb == "investigate":
+            announce("You see nothing but trees and moss.")
+        elif verb == "north":
+            announce("You go back to the North Shore")
+            config.the_player.next_loc = self.main_location.locations["North Shore"]
+        elif verb == "south":
+            announce("You attempt to go south but quickly arrive at a cliff.\nYou will have to find another way.")
+        elif verb == "west":
+            announce("You head west.")
+        elif verb == "east":
+            announce("You head east.")
+
+class Wood_Cabin(location.SubLocation):
+    def __init__(self, mainLocation):
+        super().__init__(mainLocation)
+        self.name = "Wood Cabin"
+        self.floors = ["ground", "upstairs", "basement"]
+        self.floor = self.floors[0]
+        self.verbs["upstairs"] = self
+        self.verbs["downstairs"] = self
+    def enter(self):
+        announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
+    def process_verb(self, verb, cmd_list, nouns):
+        if verb == "upstairs":
+            announce("You go upstairs.")
+            self.floor = self.floors[1]
+        if verb == "downstairs":
+            announce("You go downstairs")
+            self.floor = self.floors[-1]
