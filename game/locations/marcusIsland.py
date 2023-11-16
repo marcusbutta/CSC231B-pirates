@@ -59,6 +59,7 @@ class island(location.Location):
         self.locations["North Shore"] = NorthBeach(self)
         self.locations["Dark Forest"] = DarkForest(self)
         self.locations["Wood Cabin"] = Wood_Cabin(self)
+        self.locations["Lighthouse"] = Lighthouse(self)
         self.cultists_triggered = False
     def enter(self, ship):
         announce("You arrive at an island.\nYou find it hard to see.")
@@ -144,6 +145,8 @@ class Wood_Cabin(location.SubLocation):
         self.verbs["downstairs"] = self
         # actions
         self.verbs["investigate"] = self
+        # global nav
+        self.verbs["south"] = self
     def enter(self):
         announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -178,3 +181,29 @@ class Wood_Cabin(location.SubLocation):
                     announce("It seems to imply something paranormal.")
                 else:
                     announce("You leave the paper alone.")
+        # global nav
+        if verb == "south":
+            announce("You head south.")
+            config.the_player.next_loc = self.main_location.locations["Lighthouse"]
+
+class Lighthouse(location.SubLocation):
+    def __init__(self, mainLocation):
+        super().__init__(mainLocation)
+        self.name = "Lighthouse"
+        # global nav
+        self.verbs["north"] = self
+        self.verbs["south"] = self
+        self.verbs["west"] = self
+        self.verbs["east"] = self
+    def enter(self):
+        announce("You enter a deteriorating lighthouse.")
+    def process_verb(self, verb, cmd_list, nouns):
+        if verb == "north":
+            announce("You head north.")
+            config.the_player.next_loc = self.main_location.locations["Wood Cabin"]
+        if verb == "west":
+            announce("You attempt to go west but run into a massive chasm, you turn around.")
+        if verb == "east":
+            announce("You attempt to go west but there is nothing but ocean.")
+        if verb == "south":
+            announce("You attempt to go south but there is nothing but ocean.")
