@@ -44,6 +44,11 @@ def take_item(name, item):
             break
         else:
             print("Invalid option please try again")
+def nav_obstacle(obstacle, compass):
+    if obstacle == "cliff":
+        announce(f"You attempt to go {compass}, but stumble on a cliff.")
+    if obstacle == "ocean":
+        announce(f"You attempt to go {compass}, but stumble into open ocean.")
 
 
 # Locations:
@@ -58,7 +63,9 @@ class island(location.Location):
         self.locations = {}
         self.locations["North Shore"] = NorthBeach(self)
         self.locations["Dark Forest"] = DarkForest(self)
+        self.locations["Church"] = Church(self)
         self.locations["Wood Cabin"] = Wood_Cabin(self)
+        self.locations["Field"] = Lighthouse(self)
         self.locations["Lighthouse"] = Lighthouse(self)
         self.cultists_triggered = False
     def enter(self, ship):
@@ -109,7 +116,7 @@ class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
         super().__init__(mainLocation)
         self.name = "The Dark Forest"
-        self.event_chance = 80
+        self.event_chance = 0
         self.events.append(drowned_pirates.DrownedPirates())
         # verbs
         self.verbs["investigate"] = self
@@ -131,8 +138,33 @@ class DarkForest(location.SubLocation):
             announce("You attempt to go south but quickly arrive at a cliff.\nYou will have to find another way.")
         elif verb == "west":
             announce("You head west.")
+            config.the_player.next_loc = self.main_location.locations["Church"]
         elif verb == "east":
             announce("You head east.")
+            config.the_player.next_loc = self.main_location.locations["Wood Cabin"]
+
+class Church(location.SubLocation):
+    def __init__(self, mainLocation):
+        super().__init__(mainLocation)
+        self.name = "Church"
+        # global nav
+        self.verbs["north"] = self
+        self.verbs["south"] = self
+        self.verbs["west"] = self
+        self.verbs["east"] = self
+    def enter(self):
+        announce("You enter a seemingly abandoned church, the door creeks as you open it.")
+    def process_verb(self, verb, cmd_list, nouns):
+        if verb == "north":
+            nav_obstacle("ocean", "north")
+        if verb == "south":
+            announce("You head south.")
+            config.the_player.next_loc = self.main_location.locations["Field"]
+        if verb == "west":
+            nav_obstacle("ocean", "west")
+        if verb == "east":
+            announce("You head east.")
+            config.the_player.next_loc = self.main_location.locations["Dark Forest"]
 
 class Wood_Cabin(location.SubLocation):
     def __init__(self, mainLocation):
@@ -185,6 +217,28 @@ class Wood_Cabin(location.SubLocation):
         if verb == "south":
             announce("You head south.")
             config.the_player.next_loc = self.main_location.locations["Lighthouse"]
+
+class Field(location.SubLocation):
+    def __init__(self, mainLocation):
+        super().__init__(mainLocation)
+        self.name = "Field"
+        # global nav
+        self.verbs["north"] = self
+        self.verbs["south"] = self
+        self.verbs["west"] = self
+        self.verbs["east"] = self
+    def enter(self):
+        announce("You enter a field with an obelisk in the middle.")
+    def process_verb(self, verb, cmd_list, nouns):
+        if verb == "north":
+            announce("You head north.")
+            config.the_player.next_loc = self.main_location.locations["Church"]
+        if verb == "south":
+            nav_obstacle("cliff", "south")
+        if verb == "west":
+            nav_obstacle("cliff", "west")
+        if verb == "east":
+            nav_obstacle("cliff", "east")
 
 class Lighthouse(location.SubLocation):
     def __init__(self, mainLocation):
