@@ -66,7 +66,7 @@ class island(location.Location):
         self.locations["Church"] = Church(self)
         self.locations["Graveyard"] = Graveyard(self)
         self.locations["Wood Cabin"] = Wood_Cabin(self)
-        self.locations["Field"] = Lighthouse(self)
+        self.locations["Field"] = Field(self)
         self.locations["Lighthouse"] = Lighthouse(self)
         self.cultists_triggered = False
     def enter(self, ship):
