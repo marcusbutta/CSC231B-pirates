@@ -24,6 +24,26 @@ class Key(items.Item):
 class Rusted_Locket(items.Item):
     def __init__(self):
         super().__init__("Rusted Locket", 500)
+class Fire_Prod(items.Item):
+    def __init__(self):
+        super().__init__("Fire Prod", 50)
+        self.damage = (5, 20)
+        self.skill = "melee"
+        self.verb = "poke"
+        self.verbs = "pokes"
+# Global Funcs
+def take_item(name, item):
+    while True:
+        userInput = input("Do you wish to take it?: ")
+        if 'yes' in userInput.lower():
+            print(f"You take the {name}.")
+            config.the_player.add_to_inventory([item])
+            break
+        if 'no' in userInput.lower():
+            print(f"You leave the {name}.")
+            break
+        else:
+            print("Invalid option please try again")
 
 
 # Locations:
@@ -76,25 +96,13 @@ class NorthBeach(location.SubLocation):
             # item based:
             elif chance == "find locket":
                 announce("You find a rusted but none the less fancy locket.")
-                self.take_item("Rusted Locket", Rusted_Locket())
+                take_item("Rusted Locket", Rusted_Locket())
             elif chance == "find key":
                 announce("You find a key.\nThere is no sign as to what it is for.")
-                self.take_item("Key", Key())
+                take_item("Key", Key())
             elif chance == "flint lock":
                 announce("You find a flint lock pistol")
-                self.take_item("Flint Lock", Dagger())
-    def take_item(self, name, item):
-        while True:
-            userInput = input("Do you wish to take it?: ")
-            if 'yes' in userInput.lower():
-                print(f"You take the {name}.")
-                config.the_player.add_to_inventory([item])
-                break
-            if 'no' in userInput.lower():
-                print(f"You leave the {name}.")
-                break
-            else:
-                print("Invalid option please try again")
+                take_item("Flint Lock", Dagger())
             
 class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
@@ -131,14 +139,42 @@ class Wood_Cabin(location.SubLocation):
         self.name = "Wood Cabin"
         self.floors = ["ground", "upstairs", "basement"]
         self.floor = self.floors[0]
+        # in cabin nav
         self.verbs["upstairs"] = self
         self.verbs["downstairs"] = self
+        # actions
+        self.verbs["investigate"] = self
     def enter(self):
         announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
     def process_verb(self, verb, cmd_list, nouns):
         if verb == "upstairs":
-            announce("You go upstairs.")
-            self.floor = self.floors[1]
+            if self.floor == "upstairs":
+                announce("You are already on the top floor.")
+            else:
+                announce("You go upstairs.")
+                if self.floor == "ground":
+                    self.floor = self.floors[1]
+                elif self.floor == "basement":
+                    self.floor = self.floors[0]
         if verb == "downstairs":
-            announce("You go downstairs")
-            self.floor = self.floors[-1]
+            if self.floor == "basement":
+                announce("You can't go any further down.")
+            else:
+                announce("You go downstairs")
+                if self.floor == "ground":
+                    self.floor = self.floors[-1]
+                elif self.floor == "upstairs":
+                    self.floor = self.floors[0]
+        if verb == "investigate":
+            if self.floor == "ground":
+                announce("The room you are in is warm and comfy, you see embers in the fireplace.")
+                announce("You spot a fire prod and mostly burnt piece of paper.")
+                announce("You take a closer look at the fire prod.")
+                take_item("Fire Prod", Fire_Prod())
+                announce("You take a closer look at the piece of paper.")
+                userInput = input("Do you wish to attempt to read it?")
+                if "yes" in userInput.lower() or "sure" in userInput.lower():
+                    announce("You cannot see much but you notice it appears to have been written in a hurry.")
+                    announce("It seems to imply something paranormal.")
+                else:
+                    announce("You leave the paper alone.")
