@@ -148,6 +148,12 @@ class Church(location.SubLocation):
     def __init__(self, mainLocation):
         super().__init__(mainLocation)
         self.name = "Church"
+        # local nav
+        self.areas = ["basement", "back", "main"]
+        self.area = self.areas[2]
+        self.verbs["move"] = self
+        self.verbs["downstairs"] = self
+        self.verbs["upstairs"] = self
         # global nav
         self.verbs["north"] = self
         self.verbs["south"] = self
@@ -156,6 +162,7 @@ class Church(location.SubLocation):
     def enter(self):
         announce("You enter a seemingly abandoned church, the door creeks as you open it.")
     def process_verb(self, verb, cmd_list, nouns):
+        # global nav
         if verb == "north":
             nav_obstacle("ocean", "north")
         if verb == "south":
@@ -166,6 +173,30 @@ class Church(location.SubLocation):
         if verb == "east":
             announce("You head east.")
             config.the_player.next_loc = self.main_location.locations["Dark Forest"]
+        # local nav
+        if verb == "move":
+            if self.area == "main":
+                announce("You go into the back of the church.")
+                self.area = self.areas[1]
+            if self.area == "back":
+                announce("You go back to the main room.")
+                self.area = self.areas[2]
+            else:
+                announce("There is only one room on this floor.")
+        if verb == "downstairs":
+            if self.area == "back":
+                announce("You go downstairs.")
+                self.area = self.areas[0]
+            if self.area == "main":
+                announce("You don't see any means to go downstairs.")
+            if self.area == "basement":
+                announce("You are already on the lowest floor")
+        if verb == "upstairs":
+            if self.area == "basement":
+                announce("You go upstairs.")
+                self.area = self.areas[1]
+            else:
+                announce("You are already on the highest floor.")
 
 class Graveyard(location.SubLocation):
     def __init__(self, mainLocation):
