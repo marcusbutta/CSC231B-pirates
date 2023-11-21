@@ -178,7 +178,7 @@ class Church(location.SubLocation):
             if self.area == "main":
                 announce("You go into the back of the church.")
                 self.area = self.areas[1]
-            if self.area == "back":
+            elif self.area == "back":
                 announce("You go back to the main room.")
                 self.area = self.areas[2]
             else:
