@@ -1,4 +1,6 @@
 # imports needed for all islands
+import random
+
 from game import location
 import game.config as config
 from game.display import announce
@@ -24,6 +26,9 @@ class Key(items.Item):
 class Rusted_Locket(items.Item):
     def __init__(self):
         super().__init__("Rusted Locket", 500)
+class Token(items.Item):
+    def __init__(self):
+        super().__init__("Token", 1000)
 class Fire_Prod(items.Item):
     def __init__(self):
         super().__init__("Fire Prod", 50)
@@ -159,6 +164,8 @@ class Church(location.SubLocation):
         self.verbs["south"] = self
         self.verbs["west"] = self
         self.verbs["east"] = self
+        # actions
+        self.verbs["investigate"] = self
     def enter(self):
         announce("You enter a seemingly abandoned church, the door creeks as you open it.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -197,6 +204,33 @@ class Church(location.SubLocation):
                 self.area = self.areas[1]
             else:
                 announce("You are already on the highest floor.")
+        # actions
+        if verb == "investigate":
+            self.investigate_area(area=self.area)
+    def investigate_area(self, area):
+        if area == "main":
+            announce("Most things of value appear to have been taken.")
+            announce("The church appears to have a fairly standard layout.")
+            announce("You notice there is a room in the back.")
+        elif area == "back":
+            announce("The room is fairly empty but there appears to be some communion wafers that were not taken by raiders.")
+            userInput = input("Do you wish to take it?")
+            if "yes" in userInput.lower():
+                announce("You take the communion wafers.")
+                config.the_player.ship.food += 10
+            if "no" in userInput.lower():
+                announce("You leave the communion wafers.")
+        elif area == "basement":
+            announce("The basement appears mostly empty except for a chest in the corner.")
+            announce("Upon closer inspection you realize there are some swords surrounding the chest.")
+            announce("Do you wish to take them?")
+            sword = random.choice([items.Cutlass(), Dagger()])
+            amount = 0
+            while amount < 3:
+                take_item("Sword", sword)
+                amount += 1
+            announce("You open the chest and find what appears to be a token of some sort.")
+            take_item("Token", Token())
 
 class Graveyard(location.SubLocation):
     def __init__(self, mainLocation):
