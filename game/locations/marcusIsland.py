@@ -29,6 +29,9 @@ class Rusted_Locket(items.Item):
 class Token(items.Item):
     def __init__(self):
         super().__init__("Token", 1000)
+class Treasure(items.Item):
+    def __init__(self):
+        super().__init__("Treasure", 1000)
 class Fire_Prod(items.Item):
     def __init__(self):
         super().__init__("Fire Prod", 50)
@@ -288,22 +291,47 @@ class Wood_Cabin(location.SubLocation):
                 elif self.floor == "upstairs":
                     self.floor = self.floors[0]
         if verb == "investigate":
-            if self.floor == "ground":
-                announce("The room you are in is warm and comfy, you see embers in the fireplace.")
-                announce("You spot a fire prod and mostly burnt piece of paper.")
-                announce("You take a closer look at the fire prod.")
-                take_item("Fire Prod", Fire_Prod())
-                announce("You take a closer look at the piece of paper.")
-                userInput = input("Do you wish to attempt to read it?")
-                if "yes" in userInput.lower() or "sure" in userInput.lower():
-                    announce("You cannot see much but you notice it appears to have been written in a hurry.")
-                    announce("It seems to imply something paranormal.")
-                else:
-                    announce("You leave the paper alone.")
+            self.investigate_area(area=self.floor)
         # global nav
         if verb == "south":
             announce("You head south.")
             config.the_player.next_loc = self.main_location.locations["Lighthouse"]
+    def investigate_area(self, area):
+        if area == "ground":
+            announce("The room you are in is warm and comfy, you see embers in the fireplace.")
+            announce("You spot a fire prod and mostly burnt piece of paper.")
+            announce("You take a closer look at the fire prod.")
+            take_item("Fire Prod", Fire_Prod())
+            announce("You take a closer look at the piece of paper.")
+            userInput = input("Do you wish to attempt to read it?")
+            if "yes" in userInput.lower() or "sure" in userInput.lower():
+                announce("You cannot see much but you notice it appears to have been written in a hurry.")
+                announce("It seems to imply something paranormal.")
+            else:
+                announce("You leave the paper alone.")
+        if area == "upstairs":
+            announce("The upstairs appears to be mostly empty, except for the corpse of an old man in a chair.")
+            announce("He appears to have a token in his hand.")
+            take_item("Token", Token())
+        if area == "downstairs":
+            announce("As you go downstairs your jaw drops.")
+            announce("You see the most treasure you have ever seen in one room.")
+            announce("A creaky voice suddenly permeates through the room.")
+            announce('"YOU MAY ONLY TAKE 3"')
+            userInput = input("Do you wish to listen to the voice?: ")
+            if "yes" in userInput.lower():
+                announce("You take 3 treasures.")
+                amount = 0
+                while amount < 3:
+                    config.the_player.add_to_inventory([Treasure()])
+                    amount += 1
+            elif "no" in userInput.lower():
+                announce("You take all the treasure.")
+                amount = 0
+                while amount < 10:
+                    config.the_player.add_to_inventory([Treasure()])
+                    amount += 1
+                # add encounter here
 
 class Field(location.SubLocation):
     def __init__(self, mainLocation):
