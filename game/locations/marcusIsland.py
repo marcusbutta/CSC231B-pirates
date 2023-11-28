@@ -7,8 +7,6 @@ from game.display import announce
 # island specific imports
 import random as r
 import game.items as items
-# enemies
-from game.events import drowned_pirates
 # for cultists
 import game.event as event
 import game.combat as combat
