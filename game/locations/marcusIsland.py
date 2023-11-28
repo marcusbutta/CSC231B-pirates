@@ -9,6 +9,9 @@ import random as r
 import game.items as items
 # enemies
 from game.events import drowned_pirates
+# for cultists
+import game.event as event
+import game.combat as combat
 
 # Items:
 class Dagger(items.Item):
@@ -57,6 +60,38 @@ def nav_obstacle(obstacle, compass):
         announce(f"You attempt to go {compass}, but stumble on a cliff.")
     if obstacle == "ocean":
         announce(f"You attempt to go {compass}, but stumble into open ocean.")
+# enemies
+class Cultists(event.Event):
+    def __init__(self):
+        self.name = "Cultists attack!"
+    def process(self, world):
+        result = {}
+        result["message"] = "The cultists are defeated!"
+        minimum = 3
+        upperLimit = 5
+        monsters = []
+        enemyCount = r.randrange(minimum, upperLimit)
+        enemyCounter = 1
+        letters = "äåæɐĕęïøġɦħɧɮʫşšʨʎ"
+        while enemyCounter <= enemyCount:
+            name = ""
+            clock = 1
+            while clock <= r.randrange(3, 8):
+                name += r.choice(letters)
+                clock += 1
+            monsters.append(Cultist(name))
+            enemyCounter += 1
+        announce("You are being attacked by cultists!")
+        combat.Combat(monsters).combat()
+        result["newevents"] = [self]
+        return result
+            
+class Cultist(combat.Monster):
+    def __init__(self, name):
+        attacks = {}
+        attacks["stab"] = ["stabs", random.randrange(50, 60), (10, 15)]
+        attacks["screech"] = ["screeches", random.randrange(20, 50), (3, 7)]
+        super().__init__(name, r.randrange(10, 25), attacks, 80 + r.randrange(-10, 10))
 
 
 # Locations:
@@ -126,7 +161,7 @@ class DarkForest(location.SubLocation):
         super().__init__(mainLocation)
         self.name = "The Dark Forest"
         self.event_chance = 0
-        self.events.append(drowned_pirates.DrownedPirates())
+        self.events.append(Cultists())
         # verbs
         self.verbs["investigate"] = self
         self.verbs["north"] = self
@@ -269,6 +304,9 @@ class Wood_Cabin(location.SubLocation):
         self.verbs["investigate"] = self
         # global nav
         self.verbs["south"] = self
+        # events
+        self.event_chance = 0
+        self.events.append(Cultists())
     def enter(self):
         announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -303,7 +341,7 @@ class Wood_Cabin(location.SubLocation):
             announce("You take a closer look at the fire prod.")
             take_item("Fire Prod", Fire_Prod())
             announce("You take a closer look at the piece of paper.")
-            userInput = input("Do you wish to attempt to read it?")
+            userInput = input("Do you wish to attempt to read it?: ")
             if "yes" in userInput.lower() or "sure" in userInput.lower():
                 announce("You cannot see much but you notice it appears to have been written in a hurry.")
                 announce("It seems to imply something paranormal.")
@@ -313,7 +351,7 @@ class Wood_Cabin(location.SubLocation):
             announce("The upstairs appears to be mostly empty, except for the corpse of an old man in a chair.")
             announce("He appears to have a token in his hand.")
             take_item("Token", Token())
-        if area == "downstairs":
+        if area == "basement":
             announce("As you go downstairs your jaw drops.")
             announce("You see the most treasure you have ever seen in one room.")
             announce("A creaky voice suddenly permeates through the room.")
@@ -331,7 +369,25 @@ class Wood_Cabin(location.SubLocation):
                 while amount < 10:
                     config.the_player.add_to_inventory([Treasure()])
                     amount += 1
-                # add encounter here
+                self.event_chance = 100
+                self.cultist_encounter()
+    def cultist_encounter(self):
+        monsters = []
+        minimum = 5
+        upperLimit = 15
+        enemyCount = r.randrange(minimum, upperLimit)
+        enemyCounter = 1
+        letters = "äåæɐĕęïøġɦħɧɮʫşšʨʎ"
+        while enemyCounter <= enemyCount:
+            name = ""
+            clock = 1
+            while clock <= r.randrange(3, 8):
+                name += r.choice(letters)
+                clock += 1
+            monsters.append(Cultist(name))
+            enemyCounter += 1
+        announce("You are being attacked by cultists!")
+        combat.Combat(monsters).combat()
 
 class Field(location.SubLocation):
     def __init__(self, mainLocation):
