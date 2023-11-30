@@ -65,24 +65,24 @@ class Cultists(event.Event):
     def process(self, world):
         result = {}
         result["message"] = "The cultists are defeated!"
-        minimum = 3
-        upperLimit = 5
-        monsters = []
-        enemyCount = r.randrange(minimum, upperLimit)
-        enemyCounter = 1
-        letters = "äåæɐĕęïøġɦħɧɮʫşšʨʎ"
-        while enemyCounter <= enemyCount:
-            name = ""
-            clock = 1
-            while clock <= r.randrange(3, 8):
-                name += r.choice(letters)
-                clock += 1
-            monsters.append(Cultist(name))
-            enemyCounter += 1
-        announce("You are being attacked by cultists!")
-        combat.Combat(monsters).combat()
-        result["newevents"] = [self]
+        cultist_encounter(3, 5)
         return result
+
+def cultist_encounter(minimum, upperLimit):
+    monsters = []
+    enemyCount = r.randrange(minimum, upperLimit)
+    enemyCounter = 1
+    letters = "äåæɐĕęïøġɦħɧɮʫşšʨʎ"
+    while enemyCounter <= enemyCount:
+        name = ""
+        clock = 1
+        while clock <= r.randrange(3, 8):
+            name += r.choice(letters)
+            clock += 1
+        monsters.append(Cultist(name))
+        enemyCounter += 1
+    announce("You are being attacked by cultists!")
+    combat.Combat(monsters).combat()
             
 class Cultist(combat.Monster):
     def __init__(self, name):
@@ -368,24 +368,7 @@ class Wood_Cabin(location.SubLocation):
                     config.the_player.add_to_inventory([Treasure()])
                     amount += 1
                 self.event_chance = 100
-                self.cultist_encounter()
-    def cultist_encounter(self):
-        monsters = []
-        minimum = 5
-        upperLimit = 15
-        enemyCount = r.randrange(minimum, upperLimit)
-        enemyCounter = 1
-        letters = "äåæɐĕęïøġɦħɧɮʫşšʨʎ"
-        while enemyCounter <= enemyCount:
-            name = ""
-            clock = 1
-            while clock <= r.randrange(3, 8):
-                name += r.choice(letters)
-                clock += 1
-            monsters.append(Cultist(name))
-            enemyCounter += 1
-        announce("You are being attacked by cultists!")
-        combat.Combat(monsters).combat()
+                cultist_encounter(5, 15)
 
 class Field(location.SubLocation):
     def __init__(self, mainLocation):
