@@ -62,6 +62,7 @@ def nav_obstacle(obstacle, compass):
 class Cultists(event.Event):
     def __init__(self):
         self.name = "Cultists attack!"
+        super().__init__()
     def process(self, world):
         result = {}
         result["message"] = "The cultists are defeated!"
