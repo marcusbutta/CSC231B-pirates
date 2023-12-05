@@ -47,6 +47,7 @@ def take_item(name, item):
         if 'yes' in userInput.lower():
             print(f"You take the {name}.")
             config.the_player.add_to_inventory([item])
+            print(config.the_player.inventory[0])
             break
         if 'no' in userInput.lower():
             print(f"You leave the {name}.")
@@ -126,6 +127,8 @@ class NorthBeach(location.SubLocation):
         self.verbs["north"] = self
         self.verbs["south"] = self
         self.verbs["investigate"] = self
+        ### DELETE THIS
+        self.verbs["debug"] = self
 
     def enter(self):
         announce("You arrive at a beach.\nAt least you think it is a beach, you cannot see the sand.")
@@ -154,6 +157,10 @@ class NorthBeach(location.SubLocation):
             elif chance == "flint lock":
                 announce("You find a flint lock pistol")
                 take_item("Flint Lock", Dagger())
+        if verb == "debug":
+            for x in range(3):
+                take_item("Token", Token())
+            config.the_player.next_loc = self.main_location.locations["Field"]
             
 class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
@@ -231,9 +238,9 @@ class Church(location.SubLocation):
             if self.area == "back":
                 announce("You go downstairs.")
                 self.area = self.areas[0]
-            if self.area == "main":
+            elif self.area == "main":
                 announce("You don't see any means to go downstairs.")
-            if self.area == "basement":
+            elif self.area == "basement":
                 announce("You are already on the lowest floor")
         if verb == "upstairs":
             if self.area == "basement":
@@ -381,6 +388,7 @@ class Field(location.SubLocation):
         self.verbs["west"] = self
         self.verbs["east"] = self
         self.verbs["investigate"] = self
+        self.game = Monolith()
     def enter(self):
         announce("You enter a field with an monolith in the middle.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -395,8 +403,7 @@ class Field(location.SubLocation):
             nav_obstacle("cliff", "east")
         elif verb == "investigate":
             announce("You approach the monolith.")
-            game = Monolith()
-            game.play()
+            self.game.play()
 
 
 class Lighthouse(location.SubLocation):
@@ -422,29 +429,44 @@ class Lighthouse(location.SubLocation):
             announce("You attempt to go south but there is nothing but ocean.")
 
 # puzzle
-slots_remaining = 3
 class Monolith:
     def __init__(self):
-        self.slots = slots_remaining
+        self.slots = 3
+    def word_search(self):
+        words = ["treasure", "island", "pirates"]
+        alphabet = ['q', 'w', 'e', 'r', 't', 'y', 'u']
+        word = r.choice(words)
+        lines = []
+        letter_index = 0
+        for letter in word:
+            line = []
+            for x in range(len(word)):
+                line += r.choice(alphabet)
+            line.pop(letter_index)
+            line.insert(letter, letter_index)
+            lines.append(line)
+            letter_index += 1
+        for line in lines:
+            print(line)
+
     def inv_check(self):
-        if Token() in config.the_player.inventory:
-            try:
-                while self.slots > 0:
-                    index = config.the_player.inventory.index(Token())
-                    config.the_player.inventory.pop(index)
-                    self.slots -= 1
-                    announce("You insert a token into one of the slots.")
-                    return True
-            except ValueError:
-                announce("You do not have enough tokens!")
-                announce(f"Return when you have {self.slots} more tokens.")
-                announce("Tokens inserted will return to your inventory.")
-                clock = 3 - self.slots
-                while clock > 0:
-                    config.the_player.add_to_inventory([Token()])
-                self.leave()
+        clock = 0
+        token_status = False
+        for x in config.the_player.inventory:
+            x = str(x)
+            if "token" in x.lower():
+                token_status = True
+                token_index = clock
+            clock += 1
+        if token_status is True:
+            config.the_player.inventory.pop(token_index)
+            self.slots -= 1
+            announce("You insert a token into one of the slots.")
+            announce(f"You have {self.slots} remaining.")
+            return True
         else:
             announce("You do not have a token to insert.")
+            announce(f"You have {self.slots} slots remaining.")
             return False
 
     def leave(self):
@@ -454,13 +476,19 @@ class Monolith:
         announce("There appears to be three circular indents in the Monolith.")
         announce("Maybe you could place something in them?")
         while True:
+            if self.slots == 0:
+                announce("All slot have tokens.")
+                userInput = input("Do you wish to play a puzzle?")
+                if "yes" in userInput.lower():
+                    self.word_search()
+                else:
+                    self.leave()
             userInput = input("Do you wish to do anything?: ")
             if 'token' in userInput.lower():
                 status = self.inv_check()
+                if status is False:
+                    self.leave()
+                    break
             elif 'no' in userInput.lower():
                 self.leave()
                 break
-
-
-    if __name__ == '__main__':
-        play()
