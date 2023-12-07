@@ -47,7 +47,6 @@ def take_item(name, item):
         if 'yes' in userInput.lower():
             print(f"You take the {name}.")
             config.the_player.add_to_inventory([item])
-            print(config.the_player.inventory[0])
             break
         if 'no' in userInput.lower():
             print(f"You leave the {name}.")
@@ -168,7 +167,7 @@ class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
         super().__init__(mainLocation)
         self.name = "The Dark Forest"
-        self.event_chance = 0
+        self.event_chance = 30
         self.events.append(Cultists())
         # verbs
         self.verbs["investigate"] = self
@@ -212,8 +211,11 @@ class Church(location.SubLocation):
         self.verbs["east"] = self
         # actions
         self.verbs["investigate"] = self
+        # token
+        self.token_taken = False
     def enter(self):
         announce("You enter a seemingly abandoned church, the door creeks as you open it.")
+        announce("You notice there are multiple rooms and floors.")
     def process_verb(self, verb, cmd_list, nouns):
         # global nav
         if verb == "north":
@@ -275,8 +277,12 @@ class Church(location.SubLocation):
             while amount < 3:
                 take_item("Sword", sword)
                 amount += 1
-            announce("You open the chest and find what appears to be a token of some sort.")
-            take_item("Token", Token())
+            if self.token_taken is False:
+                announce("You open the chest and find what appears to be a token of some sort.")
+                take_item("Token", Token())
+                self.token_taken = True
+            else:
+                announce("You already looked through the chest.")
 
 class Graveyard(location.SubLocation):
     def __init__(self, mainLocation):
@@ -287,6 +293,10 @@ class Graveyard(location.SubLocation):
         self.verbs["south"] = self
         self.verbs["west"] = self
         self.verbs["east"] = self
+        # interactions
+        self.verbs["investigate"] = self
+        # token
+        self.token_taken = False
     def enter(self):
         announce("You enter a graveyard.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -298,6 +308,15 @@ class Graveyard(location.SubLocation):
             nav_obstacle("ocean", "south")
         if verb == "west":
             nav_obstacle("ocean", "west")
+        if verb == "investigate":
+            if self.token_taken is False:
+                announce("You see a hand reaching out of one of the graves.")
+                announce("It appears to be holding something.")
+                announce("When you inspect closer you see it seems to be a token of some sort.")
+                take_item("Token", Token())
+                self.token_taken = True
+            else:
+                announce("There is nothing more to investigate.")
 
 class Wood_Cabin(location.SubLocation):
     def __init__(self, mainLocation):
@@ -311,10 +330,12 @@ class Wood_Cabin(location.SubLocation):
         # actions
         self.verbs["investigate"] = self
         # global nav
+        self.verbs["west"] = self
+        self.verbs["east"] = self
+        self.verbs["north"] = self
         self.verbs["south"] = self
-        # events
-        self.event_chance = 0
-        self.events.append(Cultists())
+        # token
+        self.token_taken = False
     def enter(self):
         announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -339,9 +360,16 @@ class Wood_Cabin(location.SubLocation):
         if verb == "investigate":
             self.investigate_area(area=self.floor)
         # global nav
+        if verb == "west":
+            announce("You head west.")
+            config.the_player.next_loc = self.main_location.locations["Dark Forest"]
         if verb == "south":
             announce("You head south.")
             config.the_player.next_loc = self.main_location.locations["Lighthouse"]
+        if verb == "north":
+            nav_obstacle("ocean", "north")
+        if verb == "east":
+            nav_obstacle("cliff", "east")
     def investigate_area(self, area):
         if area == "ground":
             announce("The room you are in is warm and comfy, you see embers in the fireplace.")
@@ -356,9 +384,13 @@ class Wood_Cabin(location.SubLocation):
             else:
                 announce("You leave the paper alone.")
         if area == "upstairs":
-            announce("The upstairs appears to be mostly empty, except for the corpse of an old man in a chair.")
-            announce("He appears to have a token in his hand.")
-            take_item("Token", Token())
+            if self.token_taken is False:
+                announce("The upstairs appears to be mostly empty, except for the corpse of an old man in a chair.")
+                announce("He appears to have a token in his hand.")
+                take_item("Token", Token())
+                self.token_taken = True
+            else:
+                announce("There is nothing more to investigate.")
         if area == "basement":
             announce("As you go downstairs your jaw drops.")
             announce("You see the most treasure you have ever seen in one room.")
@@ -377,7 +409,6 @@ class Wood_Cabin(location.SubLocation):
                 while amount < 10:
                     config.the_player.add_to_inventory([Treasure()])
                     amount += 1
-                self.event_chance = 100
                 cultist_encounter(5, 15)
 
 class Field(location.SubLocation):
@@ -417,6 +448,10 @@ class Lighthouse(location.SubLocation):
         self.verbs["south"] = self
         self.verbs["west"] = self
         self.verbs["east"] = self
+        # interactions
+        self.verbs["investigate"] = self
+        # token
+        self.token_taken = False
     def enter(self):
         announce("You enter a deteriorating lighthouse.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -429,6 +464,14 @@ class Lighthouse(location.SubLocation):
             announce("You attempt to go west but there is nothing but ocean.")
         if verb == "south":
             announce("You attempt to go south but there is nothing but ocean.")
+        if verb == "investigate":
+            if self.token_taken is False:
+                announce("On the bottom of the ladder you notice a strange locket looking item.")
+                announce("Upon closer inspection it appears to be a token turned into a necklace.")
+                take_item("Token", Token())
+                self.token_taken = True
+            else:
+                announce("There is nothing else to investigate.")
 
 # puzzle
 class Monolith:
