@@ -67,6 +67,7 @@ class Cultists(event.Event):
         result = {}
         result["message"] = "The cultists are defeated!"
         cultist_encounter(3, 5)
+        result["newevents"] = []
         return result
 
 def cultist_encounter(minimum, upperLimit):
