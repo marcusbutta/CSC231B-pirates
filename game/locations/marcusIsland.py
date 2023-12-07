@@ -326,8 +326,9 @@ class Wood_Cabin(location.SubLocation):
         self.verbs["east"] = self
         self.verbs["north"] = self
         self.verbs["south"] = self
-        # token
+        # items
         self.token_taken = False
+        self.treasure_taken = False
     def enter(self):
         announce("You find and enter a cabin that appears to be abandoned.\nYou notice the cabin has multiple floors.")
     def process_verb(self, verb, cmd_list, nouns):
@@ -384,24 +385,30 @@ class Wood_Cabin(location.SubLocation):
             else:
                 announce("There is nothing more to investigate.")
         if area == "basement":
-            announce("As you go downstairs your jaw drops.")
-            announce("You see the most treasure you have ever seen in one room.")
-            announce("A creaky voice suddenly permeates through the room.")
-            announce('"YOU MAY ONLY TAKE 3"')
-            userInput = input("Do you wish to listen to the voice?: ")
-            if "yes" in userInput.lower():
-                announce("You take 3 treasures.")
-                amount = 0
-                while amount < 3:
-                    config.the_player.add_to_inventory([Treasure()])
-                    amount += 1
-            elif "no" in userInput.lower():
-                announce("You take all the treasure.")
-                amount = 0
-                while amount < 10:
-                    config.the_player.add_to_inventory([Treasure()])
-                    amount += 1
-                cultist_encounter(5, 15)
+            if self.treasure_taken is False:
+                announce("As you go downstairs your jaw drops.")
+                announce("You see the most treasure you have ever seen in one room.")
+                announce("A creaky voice suddenly permeates through the room.")
+                announce('"YOU MAY ONLY TAKE 3"')
+                userInput = input("Do you wish to listen to the voice?: ")
+                if "yes" in userInput.lower():
+                    announce("You take 3 treasures.")
+                    amount = 0
+                    while amount < 3:
+                        config.the_player.add_to_inventory([Treasure()])
+                        amount += 1
+                    self.treasure_taken = True
+                elif "no" in userInput.lower():
+                    announce("You take all the treasure.")
+                    amount = 0
+                    while amount < 10:
+                        config.the_player.add_to_inventory([Treasure()])
+                        amount += 1
+                    self.treasure_taken = True
+                    cultist_encounter(5, 15)
+            else:
+                announce("You have already taken all the treasure.")
+                announce("There is nothing else to investigate.")
 
 class Field(location.SubLocation):
     def __init__(self, mainLocation):
