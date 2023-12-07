@@ -85,3 +85,11 @@ class Flintlock(Item):
         self.skill = "guns"
         self.verb = "shoot"
         self.verb2 = "shoots"
+        
+class Fishbone(Item):
+    def __init__(self):
+        super().__init__("fish_bone", 0) 
+        self.damage = (0) 
+        self.verb = "pick"
+        self.verb2 = "drop"
+        #this is supposed to be an item used to open the treasure case

@@ -11,6 +11,7 @@ class IbrasIsland(location.Location):
         self.name = "IbrasIsland"
         self.symbol = 'X'
         self.visitable = True
+        #self.fish_caught = False
         self.starting_location = Beach(self)
         self.locations = {}
         self.locations["beach"] = self.starting_location
@@ -18,6 +19,7 @@ class IbrasIsland(location.Location):
         self.locations["hill"] = Hill(self)
         self.locations["shrine"] = Shrine(self)
         self.locations["well"] = well(self)
+        
 
     #Make the island walkable 
 
@@ -60,6 +62,7 @@ class Lake (location.SubLocation):
         self.name = "lake"
         self.verbs['south'] = self
         self.visitable = True
+        #self.fish_caught.mainlocation = True
         self.description = "You are at a lake."
         self.locations = {}
         self.event_chance = 100
@@ -107,8 +110,8 @@ class Shrine (location.SubLocation):
         self.visitable = True
         self.description = "You are at a shrine."
         self.locations = {}
-        #self.event_chance = 10
-        #self.events.append(Event("You found a gem", self.event_chance))
+        self.event_chance = 100
+        self.events.append(Pray.Pray())
 
     def enter (self):
         announce ("Ha! the shrine is here")
@@ -129,8 +132,8 @@ class well (location.SubLocation):
         self.visitable = True
         self.description = "You are at the well."
         self.locations = {}
-        #self.event_chance = 5
-        #self.events.append(Event("You found the treasure", self.event_chance))
+        self.event_chance = 100
+        self.events.append(Final_Fight.FinalFight())
 
     def enter (self):
         announce ("Finally, the well")

@@ -6,4 +6,6 @@ __all__ = ["drowned_pirates",
 "sickness",
 "You_found_a_fish",
 "Carnivore_flower",
+"Pray",
+"Final_Fight",
 "seagull"]
