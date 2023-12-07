@@ -158,9 +158,11 @@ class NorthBeach(location.SubLocation):
                 announce("You find a flint lock pistol")
                 take_item("Flint Lock", Dagger())
         if verb == "debug":
-            for x in range(3):
-                take_item("Token", Token())
-            config.the_player.next_loc = self.main_location.locations["Field"]
+            game = Monolith()
+            game.word_search()
+            # for x in range(3):
+            #     take_item("Token", Token())
+            # config.the_player.next_loc = self.main_location.locations["Field"]
             
 class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
@@ -432,10 +434,11 @@ class Lighthouse(location.SubLocation):
 class Monolith:
     def __init__(self):
         self.slots = 3
+        self.completed = False
     def word_search(self):
-        words = ["treasure", "island", "pirates"]
-        alphabet = ['q', 'w', 'e', 'r', 't', 'y', 'u']
-        word = r.choice(words)
+        words = ["treasure", "island", "pirates", "ship", "crewmate", "jolly"]
+        alphabet = "qwertyuiopasdfghjklzxcvbnm"
+        word = words[r.randrange(0, 6)]
         lines = []
         letter_index = 0
         for letter in word:
@@ -443,12 +446,39 @@ class Monolith:
             for x in range(len(word)):
                 line += r.choice(alphabet)
             line.pop(letter_index)
-            line.insert(letter, letter_index)
+            line.insert(letter_index, letter)
+            line = "".join(line)
             lines.append(line)
             letter_index += 1
+        r.shuffle(lines)
+        print("---------------")
         for line in lines:
             print(line)
-
+        print("---------------")
+        announce("There is a word hidden in the above text.")
+        announce("It is read left to right.")
+        announce("You have three guesses.")
+        guesses = 3
+        while guesses > 0:
+            userInput = input("What is your guess?: ")
+            if userInput == word:
+                self.treasure()
+                break
+            else:
+                announce(f"Incorrect guess, you have {guesses} remaining.")
+    def treasure(self):
+        if self.completed is False:
+            for x in range(20):
+                config.the_player.add_to_inventory([Treasure()])
+            announce("Congrats on finishing the puzzle.")
+            announce("You have been gained 20 treasure.")
+            announce("Have safe travels!")
+            self.completed = True
+            self.leave()
+        else:
+            announce("You have completed this puzzle before.")
+            announce("You can only get the treasure once.")
+            self.leave()
     def inv_check(self):
         clock = 0
         token_status = False
@@ -478,7 +508,7 @@ class Monolith:
         while True:
             if self.slots == 0:
                 announce("All slot have tokens.")
-                userInput = input("Do you wish to play a puzzle?")
+                userInput = input("Do you wish to play a puzzle?: ")
                 if "yes" in userInput.lower():
                     self.word_search()
                 else:
