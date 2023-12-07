@@ -126,8 +126,6 @@ class NorthBeach(location.SubLocation):
         self.verbs["north"] = self
         self.verbs["south"] = self
         self.verbs["investigate"] = self
-        ### DELETE THIS
-        self.verbs["debug"] = self
 
     def enter(self):
         announce("You arrive at a beach.\nAt least you think it is a beach, you cannot see the sand.")
@@ -156,12 +154,6 @@ class NorthBeach(location.SubLocation):
             elif chance == "flint lock":
                 announce("You find a flint lock pistol")
                 take_item("Flint Lock", Dagger())
-        if verb == "debug":
-            game = Monolith()
-            game.word_search()
-            # for x in range(3):
-            #     take_item("Token", Token())
-            # config.the_player.next_loc = self.main_location.locations["Field"]
             
 class DarkForest(location.SubLocation):
     def __init__(self, mainLocation):
